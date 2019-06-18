@@ -1,82 +1,49 @@
 <?php
 
-// Voer dit programma uit
-function voerProgrammaUit($arguments)
+define("GELDEENHEDEN", [50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05]);
+define("AANTALCENTENINEURO", 100);
+
+valideerInput($argv);
+
+$teruggave = parseNaarGetal($argv[1]);
+$teruggave = converteerNaarDichtstbijzijnde5Cent($teruggave);
+
+if ($teruggave == 0) {
+    exit("U krijgt geen geld terug" . PHP_EOL);
+}
+
+$resultaat = berekenTeruggaveInMunten($teruggave);
+
+printResultaat($resultaat);
+
+//////////////////
+/// Help Functies
+//////////////////
+
+function berekenTeruggaveInMunten($teruggave)
 {
-    if (count($arguments) != 2) {
-        exit("Verkeerd aantal argumenten. Roep de applicatie aan op de volgende manier: `wissel.php <bedrag>`" . PHP_EOL);
-    }
-
-    if (!is_numeric($arguments[1])) {
-        exit("Input moet een valide getal zijn" . PHP_EOL);
-    } else {
-        $parseNaarGetal = floatval($arguments[1]);
-    }
-
-    $teruggave = $parseNaarGetal;
-    $teruggave = round($teruggave * 100 / 5) * 5;
-
-    if ($teruggave == 0) {
-        exit("U krijgt geen geld terug" . PHP_EOL);
-    }
-
-    $teruggave1 = $teruggave;
     $muntenOverzicht = array();
 
-    $geldEenheid = 50 * 100;
-    if ($teruggave1 >= $geldEenheid) {
-        $aantalKeerMuntPastInRestBedrag = floor($teruggave1 / $geldEenheid);
-        $teruggave1 = $teruggave1 % $geldEenheid;
+    foreach (GELDEENHEDEN as $geldEenheid) {
+        $geldEenheid *= AANTALCENTENINEURO;
+        if ($teruggave >= $geldEenheid){
+            $aantalKeerMuntPastInRestBedrag = floor($teruggave / $geldEenheid);
+            $teruggave = $teruggave % $geldEenheid;
 
-        $muntenOverzicht[strval($geldEenheid)] = $aantalKeerMuntPastInRestBedrag;
+            $muntenOverzicht[strval($geldEenheid)] = $aantalKeerMuntPastInRestBedrag;
+        }
+
     }
 
-    $geldEenheid = 20 * 100;
-    if ($teruggave1 >= $geldEenheid) {
-        $aantalKeerMuntPastInRestBedrag = floor($teruggave1 / $geldEenheid);
-        $teruggave1 = $teruggave1 % $geldEenheid;
+    return $muntenOverzicht;
+}
 
-        $muntenOverzicht[strval($geldEenheid)] = $aantalKeerMuntPastInRestBedrag;
-    }
-
-    $geldEenheid = 10 * 100;
-    if ($teruggave1 >= $geldEenheid) {
-        $aantalKeerMuntPastInRestBedrag = floor($teruggave1 / $geldEenheid);
-        $teruggave1 = $teruggave1 % $geldEenheid;
-
-        $muntenOverzicht[strval($geldEenheid)] = $aantalKeerMuntPastInRestBedrag;
-    }
-
-    $geldEenheid = 5 * 100;
-    if ($teruggave1 >= $geldEenheid) {
-        $aantalKeerMuntPastInRestBedrag = floor($teruggave1 / $geldEenheid);
-        $teruggave1 = $teruggave1 % $geldEenheid;
-
-        $muntenOverzicht[strval($geldEenheid)] = $aantalKeerMuntPastInRestBedrag;
-    }
-
-    $geldEenheid = 2 * 100;
-    if ($teruggave1 >= $geldEenheid) {
-        $aantalKeerMuntPastInRestBedrag = floor($teruggave1 / $geldEenheid);
-        $teruggave1 = $teruggave1 % $geldEenheid;
-
-        $muntenOverzicht[strval($geldEenheid)] = $aantalKeerMuntPastInRestBedrag;
-    }
-
-
-    $geldEenheid = 1 * 100;
-    if ($teruggave1 >= $geldEenheid) {
-        $aantalKeerMuntPastInRestBedrag = floor($teruggave1 / $geldEenheid);
-        $teruggave1 = $teruggave1 % $geldEenheid;
-
-        $muntenOverzicht[strval($geldEenheid)] = $aantalKeerMuntPastInRestBedrag;
-    }
-
+function printResultaat($muntenOverzicht) {
     $resultaat = "";
 
     foreach ($muntenOverzicht as $geldEenheid => $aantal) {
-        if ($geldEenheid >= 100) {
-            $resultaat .= "$aantal x " . $geldEenheid / 100 . " euro";
+        if($geldEenheid >= AANTALCENTENINEURO) {
+            $resultaat .= "$aantal x " . $geldEenheid / AANTALCENTENINEURO . " euro";
         } else {
             $resultaat .= "$aantal x " . $geldEenheid . " cent";
         }
@@ -85,4 +52,36 @@ function voerProgrammaUit($arguments)
     echo $resultaat;
 }
 
-voerProgrammaUit($argv);
+function converteerNaarDichtstbijzijnde5Cent($bedrag) {
+    return round($bedrag * AANTALCENTENINEURO / 5) * 5;
+}
+
+/**
+ * Valideer of de applicatie correct is aangeroepen
+ *
+ * @param $arguments
+ */
+function valideerInput($arguments)
+{
+    if (count($arguments) != 2) {
+        exit("Verkeerd aantal argumenten. Roep de applicatie aan op de volgende manier: `wissel.php <bedrag>`" . PHP_EOL);
+    }
+}
+
+/**
+ * Probeer de input naar een getal te veranderen, als dit niet lukt dan stopt de applicatie.
+ *
+ * @param $value
+ * @param $veldNaam
+ * @return int
+ */
+function parseNaarGetal($value)
+{
+    if (!is_numeric($value)) {
+        exit("Input moet een valide getal zijn" . PHP_EOL);
+    } else {
+        return floatval($value);
+    }
+}
+
+?>
